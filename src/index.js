@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-key */
 /* eslint-disable react/prop-types */
 import React from "react";
 import ReactDOM from "react-dom";
@@ -54,11 +55,12 @@ class Game extends React.Component {
         },
       ],
       xIsNext: true,
+      stepNumber: 0,
     };
   }
 
   handleClick(i) {
-    const history = this.state.history;
+    const history = this.state.history.slice(0, this.state.stepNumber + 1);
     const current = history[history.length - 1];
     const squares = current.squares.slice();
 
@@ -73,14 +75,36 @@ class Game extends React.Component {
         },
       ]),
       xIsNext: !this.state.xIsNext,
+      stepNumber: history.length,
+    });
+  }
+
+  jumpTo(step) {
+    this.setState({
+      stepNumber: step,
+      xIsNext: step % 2 === 0,
     });
   }
 
   render() {
     const history = this.state.history;
-    const current = history[history.length - 1];
+    const current = history[this.state.stepNumber];
     const squares = current.squares;
     const winner = calculateWinner(squares);
+
+    const movimientos = history.map((step, movimiento) => {
+      const jugador = (movimiento + 1) % 2 === 0 ? " jugador X" : " jugador O";
+      const desc = movimiento
+        ? "ir al movimiento " + movimiento + jugador
+        : "iniciar juego";
+
+      return (
+        <li key={movimiento}>
+          <button onClick={() => this.jumpTo(movimiento)}>{desc}</button>
+        </li>
+      );
+    });
+
     let status;
     if (winner) {
       status = "ganaron " + winner;
@@ -98,7 +122,7 @@ class Game extends React.Component {
         </div>
         <div className="game-info">
           <div>{status}</div>
-          <ol>{/* TODO */}</ol>
+          <ol>{movimientos}</ol>
         </div>
       </div>
     );
